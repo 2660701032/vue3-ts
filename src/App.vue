@@ -1,78 +1,68 @@
 <template>
-  <h2>计算属性和监听</h2>
-  <fieldset>
-    <legend>姓名操作</legend>
-    姓氏：<input type="text"  v-model="user.firstName" /> <br>
-    名字：<input type="text" v-model="user.lastName" >
-  </fieldset>
-  <fieldset>
-    <legend>计算属性和监听的演示</legend>
-    姓名：<input type="text" v-model="fullName1" /> <br>
-    姓名：<input type="text"  v-model="fullName2" /> <br>
-    姓名：<input type="text" v-model="fullName3">
-  </fieldset>
-  
+  <h2>ref、和toRef、toRefs俩函数
+  </h2>
+  <h3>ref</h3>
+  <p>姓名：{{name_ref}}</p>
+  <button @click="btnName">修改信息</button>
+  <br>
+  <h3>toRef</h3>
+  <p>姓名：{{boy_toRef}}</p>
+  <p>年龄：{{boy.age}}</p>
+  <button @click="btnBoy">修改信息</button>
+  <br>
+  <h3>toRefs函数</h3>
+  <p>姓名：{{name2}}</p>
+  <p>年龄：{{age2}}</p>
 </template>
 <script lang="ts">
-import { computed, defineComponent, reactive, watch, ref, watchEffect } from 'vue'
+import { defineComponent, ref, toRef, toRefs } from 'vue'
 
 export default defineComponent({
   setup() {
-    const user = reactive({
-      firstName: '东方',
-      lastName: '不败'
-    })
-    // 通过计算属性 获得第一个姓名
-    // 计算属性中如果只穿入一个回调函数 表示get （简写）
-    // 返回的是一个ref类型的对象
-    const fullName1 = computed(()=>{
-      return user.firstName + '_' + user.lastName
-    })
+    const name = '小明'
+    const name_ref = ref(name)
+    const btnName = () => {
+      name_ref.value = '萧炎'
+      // ref代理的数据源没有变还是小明 但ref变成了萧炎
+      // ref 函数可以将对象里面的属性值变成响应式的数据，修改响应式数据，是不会影响到源数据，但是视图层上的数据会被更新
+      console.log(name, name_ref)
+    }
 
-    const fullName2 = computed({
-      get(){
-        return user.firstName + '_' + user.lastName
-      },
-      set(val:string){
-        console.log(val)
-        const names = val.split('_')
-        user.firstName = names[0]
-        user.lastName = names[1]
-      }
-    })
+    const boy = {
+      name: '我是ed',
+      age: 10,
+    }
+    const boy_toRef = toRef(boy, 'name')
+    console.log(boy, boy_toRef)
+    const btnBoy = () => {
+      boy_toRef.value = '𝒆𝒅'
+      // toRef 把源数据boy修改了 但是toRef没有变
+      // toRef 函数会与源数据交互，修改响应式数据会造成源数据的修改，但是他的修改不会造成视图层数据的更新
+      console.log(boy, boy_toRef)
+    }
 
-    const fullName3 = ref('')
-    //  监听 - watch
-    // watch(user,({firstName, lastName})=>{
-    //   fullName3.value = firstName + '_' + lastName
-      
-    // },{
-    //   immediate: true,
-    //   deep: true,
-    // })
-
-    // 监听 - 多个数据
-    // watch([user.firstName, user.lastName, fullName3],()=>{
-    //   // 这里代码没有执行，fullname3是响应式的 而user.firstName, user.lastName不是响应式的
-    //   console.log('多个监听了');
-    // })
-    // 监听 - 监听非响应式的数据的时候
-    watch([()=>user.firstName, ()=>user.lastName],(val)=>{
-      // 这里代码没有执行，fullname3是响应式的 而user.firstName, user.lastName不是响应式的
-      console.log('多个监听了', val);
-    })
-
-    // 监听 - watchEffect
-    // 不需要配置immediate
-    watchEffect(()=>{
-      fullName3.value = user.firstName + '_' + user.lastName
-    })
+    const boy2 = {
+      name2: '我是ed',
+      age2: 10,
+    }
+    /*
+      toRefs 函数用于批量设置多个数据为相应是数据。
+      toRefs 函数与原始数据相交互，修改响应式数据会影响到源数据，但是不会更新视图层。
+      toRefs 函数还可以与其他响应式数据相交互，更加方便处理视图层数据
+      在return中直接...toRefs(boy2) 然后在html模板中就可以解构出boy2中的属性了，但是改变就不能更新视图了。
+    */ 
+    // const boy_toRefs = toRefs(boy2)
+    console.log(boy2)
 
     return {
-      user,
-      fullName1,
-      fullName2,
-      fullName3
+      name_ref,
+      btnName,
+      boy,
+      boy_toRef,
+      btnBoy,
+      // boy2,
+      // boy_toRefs,
+      ...toRefs(boy2)
     }
   },
 })
